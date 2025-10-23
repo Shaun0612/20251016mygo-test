@@ -78,25 +78,23 @@ class Particle {
     constructor(x, y, hu) {
         this.pos = createVector(x, y);
         this.vel = p5.Vector.random2D();
-        this.vel.mult(random(2, 8)); 
-        this.acc = createVector(0, 0.1); 
-        this.lifespan = 255;
-        this.hu = hu; 
-        // 【修改點 2】：提高粒子亮度範圍，確保對比度
-        this.brightness = random(85, 100); 
+        this.vel.mult(random(4, 12)); // 增加粒子速度範圍
+        this.acc = createVector(0, 0.2); // 增加重力效果
+        this.lifespan = 355; // 增加生命週期
+        this.hu = hu;
+        this.brightness = random(90, 100); // 提高亮度
     }
 
     update() {
-        this.vel.add(this.acc); 
+        this.vel.add(this.acc);
         this.pos.add(this.vel);
-        this.lifespan -= 4; 
+        this.lifespan -= 2; // 降低消失速度
     }
     
     show() {
         noStroke();
-        fill(this.hu, 100, this.brightness, this.lifespan / 255 * 100); 
-        // 【修改點 1】：將粒子大小從 4 增加到 8
-        ellipse(this.pos.x, this.pos.y, 8); 
+        fill(this.hu, 100, this.brightness, this.lifespan / 355 * 100);
+        ellipse(this.pos.x, this.pos.y, 12); // 增加粒子大小
     }
 
     isFinished() {
@@ -105,9 +103,9 @@ class Particle {
 }
 
 function createFirework(x, y) {
-    let hu = random(360); 
-    for (let i = 0; i < 150; i++) {
-        fireworks.push(new Particle(x, y, hu)); 
+    let hu = random(360);
+    for (let i = 0; i < 200; i++) { // 增加粒子數量
+        fireworks.push(new Particle(x, y, hu));
     }
 }
 
@@ -124,7 +122,7 @@ function draw() {
     
     if (triggerFirework) {
         // 黑色背景 (0, 0, 0)，高透明度 (10)，確保有煙花殘影
-        background(0, 0, 0, 10); 
+        background(0, 0, 0, 25); // 調整背景透明度，增加拖尾效果
     } else {
         // 當分數不滿足條件時，清為不透明白色
         background(255); 
@@ -137,9 +135,9 @@ function draw() {
     // -----------------------------------------------------------------
     if (triggerFirework) {
         
-        // 持續發射：每 15 幀隨機發射一次新的煙花
-        if (frameCount % 15 == 0 && random(1) < 0.7) {
-            createFirework(random(width), random(height * 0.2, height * 0.8)); 
+        // 增加發射頻率
+        if (frameCount % 30 == 0 && random(1) < 0.8) {
+            createFirework(random(width), height * 0.3);
         }
         
         // 更新和顯示所有粒子
