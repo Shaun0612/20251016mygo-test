@@ -1,25 +1,55 @@
+/* 移除瀏覽器預設的邊距和填充 */
 html, body {
-  margin: 0;
-  padding: 0;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* 防止滾動條出現 */
 }
 
-canvas {
-  display: block;
+/* H5P 內容容器 (作為畫布重疊的基礎) */
+#h5p-container {
+    position: relative; /* 確保 p5-container 相對於它定位 */
+    width: 100%;
+    height: 100%;
+    min-height: 500px; /* 設置一個最小高度 */
+    background-color: #f0f0f0; /* H5P 內容的背景色 */
+    padding: 20px;
 }
-/* style.css (您可能需要新增此部分) */
+
+/* ---------------------------------------------------- */
+/* 【P5.js 畫布容器樣式】 - 確保重疊和初始隱藏 */
+/* ---------------------------------------------------- */
 #p5-container {
-    position: absolute; /* 相對於父容器進行絕對定位 */
+    /* 絕對定位，使其能浮在 H5P 內容之上 */
+    position: absolute; 
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 10; /* 確保 p5-container 在 H5P 內容之上 */
-    pointer-events: none; /* 讓滑鼠點擊可以穿透到下層的 H5P 內容，除非煙花觸發 */
-    display: none; /* 初始隱藏 */
+    
+    /* 設置 z-index 確保畫布在 H5P 內容之上 */
+    /* 這裡設為 10 假設 H5P 內容的 z-index 較低 */
+    z-index: 10; 
+    
+    /* 初始隱藏。等待成績出來後，sketch.js 會將其設置為 'block' */
+    display: none; 
+    
+    /* 預設允許點擊穿透到 H5P 內容（除非煙花動畫啟動，由 JS 控制） */
+    pointer-events: none; 
 }
-/* 畫布本身 (由 p5.js 產生) */
+
+/* 確保 p5.js 創建的 canvas 填滿其父容器 */
 #p5-container canvas {
     display: block;
     width: 100%;
     height: 100%;
+}
+
+/* 模擬按鈕樣式 */
+button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
 }
