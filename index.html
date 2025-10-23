@@ -1,41 +1,21 @@
-
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <title>MyGo!!!!!小問答！</title>
-    <h1>把右邊的答案拖到左邊<h1>
-    
-    <!-- 引入 p5.js 函式庫 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.js"></script> 
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <title>H5P & p5.js 煙花特效</title>
+
+    <link rel="stylesheet" type="text/css" href="style.css">
 
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.min.js"></script>
-    <!-- 引入您的分數顯示邏輯 (必須在 p5.js 之後載入) -->
-    <!-- 確保 JS 檔案載入順序正確，以讓變數作用於全域範圍 [4] -->
-    <script src="sketch.js"></script>
-    
-    <style>
-        /* 讓內容置中方便查看 */
-        body { 
-            margin: 0; 
-            display: flex; 
-            flex-direction: column;
-            align-items: center; 
-            min-height: 100vh; 
-            font-family: Arial, sans-serif;
-        }
-        #h5pContainer {
-            margin-top: 20px;
-        }
-        /* p5.js Canvas 會自動創建在 body 內 */
-    </style>
 </head>
+
 <body>
-    <h1>Shaun の MyGo!!!!!小問答~</h1>
-    
-    <div id="h5pContainer">
+    <div id="h5p-container">
+        <h1>Shaun の MyGo!!!!!小問答~</h1>
+        <div id="h5pContainer">
         <!-- 嵌入 H5P 匯出檔案 -->
         <!-- 將 src 設為 H5P 匯出的 HTML 檔名，例如 h5p_exported.html -->
         <iframe 
@@ -48,6 +28,24 @@
     </div>
     
     <!-- 分數將顯示在 p5.js 創建的 Canvas 上 -->
+        
+        <button onclick="simulateScore(4, 5)">模擬成績: 4/5 (>=80%) - 觸發煙花</button>
+        <button onclick="simulateScore(2, 5)">模擬成績: 2/5 (<80%) - 靜態顯示</button>
+
+    </div>
+
+    <div id="p5-container"></div>
+    
+    <script src="sketch.js"></script>
+    
+    <script>
+        function simulateScore(score, maxScore) {
+            window.postMessage({
+                type: 'H5P_SCORE_RESULT',
+                score: score,
+                maxScore: maxScore
+            }, '*');
+        }
+    </script>
 </body>
 </html>
-
