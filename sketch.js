@@ -26,7 +26,7 @@ window.addEventListener('message', function (event) {
         
         console.log("新的分數已接收:", scoreText); 
         
-        // 【修改點 1】：檢查是否達到煙花條件 (正確率 >= 80%)
+        // 【檢查條件】：得分達到 4/5 (80%) 及以上時觸發
         let percentage = (maxScore > 0) ? (finalScore / maxScore) * 100 : 0;
         
         // 只有當百分比首次達到 >= 80% 時才觸發動畫
@@ -36,7 +36,6 @@ window.addEventListener('message', function (event) {
             
             // 初始觸發時發射多組煙花
             for (let i = 0; i < 5; i++) {
-                // 在畫布頂部隨機位置發射
                 createFirework(random(width), random(height / 4)); 
             }
         } else if (percentage < 80) { // 低於 80% 時關閉旗標
@@ -63,8 +62,8 @@ function setup() {
     createCanvas(windowWidth, windowHeight); 
     background(255); 
     
-    // 啟用 HSB 顏色模式，方便製作五顏六色的煙花
-    colorMode(HSB, 360, 100, 100, 100); 
+    // 初始設定 colorMode 為 RGB，這是 p5.js 的預設和安全模式
+    colorMode(RGB); 
     
     // 初始狀態應停止循環，直到收到數據
     noLoop(); 
@@ -95,9 +94,11 @@ class Particle {
         this.pos.add(this.vel);
         this.lifespan -= 4; 
     }
-
+    
+    // 注意：show() 函式中不包含 colorMode 切換
     show() {
         noStroke();
+        // 確保 HSB 模式下 fill 的參數是正確的
         fill(this.hu, 100, this.brightness, this.lifespan / 255 * 100); 
         ellipse(this.pos.x, this.pos.y, 4);
     }
@@ -108,6 +109,7 @@ class Particle {
 }
 
 function createFirework(x, y) {
+    // 雖然粒子使用 HSB，但 random(360) 在任何模式下都返回 0-360 的數字
     let hu = random(360); 
     for (let i = 0; i < 150; i++) {
         fireworks.push(new Particle(x, y, hu)); 
@@ -120,33 +122,33 @@ function createFirework(x, y) {
 function draw() { 
     
     // -----------------------------------------------------------------
-    // A. 背景處理 (最先執行)
+    // A. 背景處理 (圖層 1：夜空背景)
     // -----------------------------------------------------------------
     // 必須在最前面處理背景清除
+    colorMode(RGB); // 確保使用 RGB 處理背景顏色 (0-255)
+    
     if (triggerFirework) {
-        colorMode(RGB); // 切換到 RGB 處理背景
         // 黑色背景 (0, 0, 0)，高透明度 (10)，確保有煙花殘影
         background(0, 0, 0, 10); 
     } else {
-        colorMode(RGB); 
-        background(255); 
+        background(255); // 白色背景
     }
     
     let percentage = (maxScore > 0) ? (finalScore / maxScore) * 100 : 0;
     
     // -----------------------------------------------------------------
-    // B. 煙花特效處理
+    // B. 煙花特效處理 (圖層 2：粒子動畫)
     // -----------------------------------------------------------------
     if (triggerFirework) {
         
         // 持續發射：每 15 幀隨機發射一次新的煙花
         if (frameCount % 15 == 0 && random(1) < 0.7) {
-            // 在畫布上半部分隨機位置發射
             createFirework(random(width), random(height * 0.2, height * 0.8)); 
         }
         
         // 更新和顯示所有粒子
-        colorMode(HSB); // 切換到 HSB 處理五顏六色的粒子
+        colorMode(HSB, 360, 100, 100, 100); // 【關鍵】切換到 HSB 處理粒子顏色
+        
         for (let i = fireworks.length - 1; i >= 0; i--) {
             fireworks[i].update();
             fireworks[i].show();
@@ -158,20 +160,20 @@ function draw() {
     
     
     // -----------------------------------------------------------------
-    // C. 文本和 UI 元素 (最後繪製，覆蓋煙花)
+    // C. 文本和 UI 元素 (圖層 3：最上層，覆蓋所有內容)
     // -----------------------------------------------------------------
     
-    colorMode(RGB); // 切換回 RGB 處理文本和 UI 顏色
+    colorMode(RGB); // 【關鍵】切換回 RGB 處理文本和 UI 顏色
     textSize(width / 15); 
     textAlign(CENTER);
     
-    let textColor = color(255, 255, 255); // 白色文字，在夜空背景上清晰可見
+    let textColor = color(255, 255, 255); // 白色文字
     
     if (percentage >= 90) {
         fill(textColor); 
         text("恭喜！優異成績！", width / 2, height / 2 - 50);
         
-    } else if (percentage >= 80) { // 【修改點 2】：>= 80% 觸發慶祝文字
+    } else if (percentage >= 80) { 
         fill(textColor); 
         text("超讚！煙花慶祝中！", width / 2, height / 2 - 50);
         
@@ -190,12 +192,12 @@ function draw() {
 
     // 顯示具體分數
     textSize(width / 20);
-    fill(255, 255, 255); // 白色分數文字
+    fill(255, 255, 255); 
     text(`得分: ${finalScore}/${maxScore}`, width / 2, height / 2 + 50);
     
     
     // -----------------------------------------------------------------
-    // D. 幾何圖形反映 (最後繪製)
+    // D. 幾何圖形反映 (最上層)
     // -----------------------------------------------------------------
     
     if (percentage >= 90) {
