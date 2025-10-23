@@ -32,7 +32,7 @@ window.addEventListener('message', function (event) {
         // 只有當百分比首次達到 >= 80% 時才觸發動畫
         if (percentage >= 80 && !triggerFirework) {
             triggerFirework = true;
-            loop(); // 確保 draw() 開始持續循環
+            // 由於 setup 中已強制 loop，這裡無需再次呼叫
             
             // 初始觸發時發射多組煙花
             for (let i = 0; i < 5; i++) {
@@ -40,10 +40,6 @@ window.addEventListener('message', function (event) {
             }
         } else if (percentage < 80) { // 低於 80% 時關閉旗標
             triggerFirework = false;
-            // 如果分數低於 80%，並且已經處理過分數，停止循環
-            if (maxScore > 0 && finalScore > 0) { 
-                noLoop();
-            }
         }
 
         if (typeof redraw === 'function') {
@@ -60,13 +56,13 @@ window.addEventListener('message', function (event) {
 function setup() { 
     // 擴大畫布尺寸至整個視窗
     createCanvas(windowWidth, windowHeight); 
-    background(255); 
     
     // 初始設定 colorMode 為 RGB，這是 p5.js 的預設和安全模式
     colorMode(RGB); 
+    background(255); 
     
-    // 初始狀態應停止循環，直到收到數據
-    noLoop(); 
+    // 【修改點 3】：強制 loop() 從啟動開始就持續執行
+    loop(); 
 } 
 
 function windowResized() {
@@ -86,7 +82,8 @@ class Particle {
         this.acc = createVector(0, 0.1); 
         this.lifespan = 255;
         this.hu = hu; 
-        this.brightness = random(50, 100); 
+        // 【修改點 2】：提高粒子亮度範圍，確保對比度
+        this.brightness = random(85, 100); 
     }
 
     update() {
@@ -95,12 +92,11 @@ class Particle {
         this.lifespan -= 4; 
     }
     
-    // 注意：show() 函式中不包含 colorMode 切換
     show() {
         noStroke();
-        // 確保 HSB 模式下 fill 的參數是正確的
         fill(this.hu, 100, this.brightness, this.lifespan / 255 * 100); 
-        ellipse(this.pos.x, this.pos.y, 4);
+        // 【修改點 1】：將粒子大小從 4 增加到 8
+        ellipse(this.pos.x, this.pos.y, 8); 
     }
 
     isFinished() {
@@ -109,7 +105,6 @@ class Particle {
 }
 
 function createFirework(x, y) {
-    // 雖然粒子使用 HSB，但 random(360) 在任何模式下都返回 0-360 的數字
     let hu = random(360); 
     for (let i = 0; i < 150; i++) {
         fireworks.push(new Particle(x, y, hu)); 
@@ -131,7 +126,8 @@ function draw() {
         // 黑色背景 (0, 0, 0)，高透明度 (10)，確保有煙花殘影
         background(0, 0, 0, 10); 
     } else {
-        background(255); // 白色背景
+        // 當分數不滿足條件時，清為不透明白色
+        background(255); 
     }
     
     let percentage = (maxScore > 0) ? (finalScore / maxScore) * 100 : 0;
@@ -147,7 +143,7 @@ function draw() {
         }
         
         // 更新和顯示所有粒子
-        colorMode(HSB, 360, 100, 100, 100); // 【關鍵】切換到 HSB 處理粒子顏色
+        colorMode(HSB, 360, 100, 100, 100); // 切換到 HSB 處理粒子顏色
         
         for (let i = fireworks.length - 1; i >= 0; i--) {
             fireworks[i].update();
@@ -163,7 +159,7 @@ function draw() {
     // C. 文本和 UI 元素 (圖層 3：最上層，覆蓋所有內容)
     // -----------------------------------------------------------------
     
-    colorMode(RGB); // 【關鍵】切換回 RGB 處理文本和 UI 顏色
+    colorMode(RGB); // 切換回 RGB 處理文本和 UI 顏色
     textSize(width / 15); 
     textAlign(CENTER);
     
@@ -212,6 +208,7 @@ function draw() {
     }
     
     // 只有在分數未達到 80% 且靜止狀態時才停止循環
+    // 注意：即使啟用了 loop()，noLoop() 仍然可以停止它。
     if (!triggerFirework && maxScore > 0 && finalScore > 0) {
         noLoop();
     }
