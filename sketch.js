@@ -26,11 +26,11 @@ window.addEventListener('message', function (event) {
         
         console.log("新的分數已接收:", scoreText); 
         
-        // 【優化檢查】檢查是否達到煙花條件 (正確率 > 80%)
+        // 【修改點 1】：檢查是否達到煙花條件 (正確率 >= 80%)
         let percentage = (maxScore > 0) ? (finalScore / maxScore) * 100 : 0;
         
-        // 只有當百分比首次達到 > 80% 時才觸發動畫
-        if (percentage > 80 && !triggerFirework) {
+        // 只有當百分比首次達到 >= 80% 時才觸發動畫
+        if (percentage >= 80 && !triggerFirework) {
             triggerFirework = true;
             loop(); // 確保 draw() 開始持續循環
             
@@ -39,7 +39,7 @@ window.addEventListener('message', function (event) {
                 // 在畫布頂部隨機位置發射
                 createFirework(random(width), random(height / 4)); 
             }
-        } else if (percentage <= 80) {
+        } else if (percentage < 80) { // 低於 80% 時關閉旗標
             triggerFirework = false;
             // 如果分數低於 80%，並且已經處理過分數，停止循環
             if (maxScore > 0 && finalScore > 0) { 
@@ -76,7 +76,7 @@ function windowResized() {
 
 
 // =================================================================
-// 步驟三：煙花粒子類別與函數 (保持不變)
+// 步驟三：煙花粒子類別與函數
 // -----------------------------------------------------------------
 
 class Particle {
@@ -165,19 +165,18 @@ function draw() {
     textSize(width / 15); 
     textAlign(CENTER);
     
-    // 【修改】文本顏色改為白色 (255)，以適應黑色夜空背景
-    let textColor = color(255, 255, 255); 
+    let textColor = color(255, 255, 255); // 白色文字，在夜空背景上清晰可見
     
     if (percentage >= 90) {
         fill(textColor); 
         text("恭喜！優異成績！", width / 2, height / 2 - 50);
         
-    } else if (percentage > 80) { 
+    } else if (percentage >= 80) { // 【修改點 2】：>= 80% 觸發慶祝文字
         fill(textColor); 
         text("超讚！煙花慶祝中！", width / 2, height / 2 - 50);
         
     } else if (percentage >= 60) {
-        fill(255, 181, 35); // 中等分數使用黃色，在黑/白背景都可見
+        fill(255, 181, 35); // 中等分數使用黃色
         text("成績良好，請再接再厲。", width / 2, height / 2 - 50);
         
     } else if (percentage > 0) {
@@ -210,9 +209,7 @@ function draw() {
         rect(width / 2, height / 2 + 150, width / 10, width / 10);
     }
     
-    // 【移除 noLoop 覆蓋】
-    // 刪除結尾阻止循環的邏輯，只有在分數未達到 80% 且靜止狀態時才停止。
-    // 在分數達到 80% 後，loop() 應保持開啟，以持續播放動畫。
+    // 只有在分數未達到 80% 且靜止狀態時才停止循環
     if (!triggerFirework && maxScore > 0 && finalScore > 0) {
         noLoop();
     }
