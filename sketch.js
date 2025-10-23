@@ -3,7 +3,6 @@
 // -----------------------------------------------------------------
 
 
-// let scoreText = "成績分數: " + finalScore + "/" + maxScore;
 // 確保這是全域變數
 let finalScore = 0; 
 let maxScore = 0;
@@ -27,13 +26,19 @@ window.addEventListener('message', function (event) {
         
         console.log("新的分數已接收:", scoreText); 
         
-        // 【新增】檢查是否達到煙花條件 (正確率 > 80%)
+        // 【修改】檢查是否達到煙花條件 (正確率 > 80%)
         let percentage = (maxScore > 0) ? (finalScore / maxScore) * 100 : 0;
-        if (percentage > 80) {
+        
+        // 只有當百分比首次達到 > 80% 時才觸發動畫
+        if (percentage > 80 && !triggerFirework) {
             triggerFirework = true;
-            // 立即觸發一次煙花爆炸
-            createFirework(width / 2, height / 2);
-        } else {
+            loop(); // 確保 draw() 開始持續循環
+            // 【強化】初始觸發時發射多組煙花
+            for (let i = 0; i < 5; i++) {
+                // 在畫布頂部隨機位置發射
+                createFirework(random(width), random(height / 4)); 
+            }
+        } else if (percentage <= 80) {
             triggerFirework = false;
         }
 
@@ -52,17 +57,21 @@ window.addEventListener('message', function (event) {
 // -----------------------------------------------------------------
 
 function setup() { 
-    // ... (其他設置)
-    createCanvas(windowWidth / 2, windowHeight / 2); 
+    // 【修改】擴大畫布尺寸至整個視窗
+    createCanvas(windowWidth, windowHeight); 
     background(255); 
-    
-    // 【修改】如果需要煙花動畫，需要啟用 loop()，或者在 draw() 中處理 noLoop() 邏輯。
-    // 這裡我們預設啟用 loop() 來支持動畫，除非分數尚未收到。
-    loop(); 
     
     // 啟用 HSB 顏色模式，方便製作五顏六色的煙花
     colorMode(HSB, 360, 100, 100, 100); 
+    
+    // 初始狀態應停止循環，直到收到數據
+    noLoop(); 
 } 
+
+// 當視窗大小改變時，重新調整畫布大小 (增強網頁體驗)
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+}
 
 
 // =================================================================
@@ -75,11 +84,12 @@ class Particle {
         this.pos = createVector(x, y);
         // 賦予隨機初始速度，模擬爆炸效果
         this.vel = p5.Vector.random2D();
-        this.vel.mult(random(2, 6)); 
+        this.vel.mult(random(2, 8)); // 【調整】提高速度範圍
         this.acc = createVector(0, 0.1); // 簡化重力
         this.lifespan = 255;
-        this.hu = hu; // 色相
-        this.brightness = random(70, 100);
+        this.hu = hu; // 色相 (主色)
+        // 【調整】讓每個粒子顏色略有不同
+        this.brightness = random(50, 100); 
     }
 
     update() {
@@ -102,9 +112,10 @@ class Particle {
 
 // 創建煙花粒子
 function createFirework(x, y) {
-    let hu = random(360); // 隨機色相
-    for (let i = 0; i < 100; i++) {
-        // 創建 100 個粒子，共享同一色相
+    let hu = random(360); // 隨機色相 (五顏六色)
+    // 【調整】增加粒子數量
+    for (let i = 0; i < 150; i++) {
+        // 創建 150 個粒子，共享同一色相
         fireworks.push(new Particle(x, y, hu)); 
     }
 }
@@ -113,13 +124,15 @@ function createFirework(x, y) {
 // score_display.js 中的 draw() 函數片段
 
 function draw() { 
-    // 【修改】使用半透明背景，留下微弱的粒子殘影，模擬煙花軌跡。
-    // 如果沒有觸發煙花，則使用不透明白色背景。
+    
+    // 【修改】使用半透明黑色背景，確保煙花動畫的夜空效果
     if (triggerFirework) {
-        // 黑色背景，高透明度，模擬夜空與殘影
+        // 黑色背景 (0, 0, 0)，高透明度 (10)，模擬夜空與殘影
+        colorMode(RGB); // 使用 RGB 處理背景
         background(0, 0, 0, 10); 
     } else {
         // 尚未收到分數或不需要動畫時，保持白色背景
+        colorMode(RGB); // 使用 RGB 處理背景
         background(255); 
     }
     
@@ -130,13 +143,14 @@ function draw() {
     // C. 煙花特效處理
     // -----------------------------------------------------------------
     if (triggerFirework) {
-        // 每 30 幀隨機發射一次新的煙花 (如果得分持續高分)
-        if (frameCount % 30 == 0 && random(1) < 0.5) {
-            // 在底部或隨機位置發射
-            createFirework(random(width), height); 
+        // 【調整】提高發射頻率：每 15 幀隨機發射一次新的煙花
+        if (frameCount % 15 == 0 && random(1) < 0.7) {
+            // 在畫布上半部分隨機位置發射
+            createFirework(random(width), random(height * 0.2, height * 0.8)); 
         }
         
         // 更新和顯示所有粒子
+        colorMode(HSB); // 確保在繪製粒子時使用 HSB 模式
         for (let i = fireworks.length - 1; i >= 0; i--) {
             fireworks[i].update();
             fireworks[i].show();
@@ -151,40 +165,37 @@ function draw() {
     // -----------------------------------------------------------------
     // A. 根據分數區間改變文本顏色和內容 (畫面反映一)
     // -----------------------------------------------------------------
-    // 【新增】確保文本在煙花之上顯示
-    colorMode(RGB); // 將顏色模式切換回 RGB 處理文字和 UI 元素
-    textSize(80); 
+    
+    // 確保文本在煙花之上顯示，並使用 RGB 模式顯示文字
+    colorMode(RGB); 
+    textSize(width / 15); // 【調整】文字大小根據畫布寬度自動調整
     textAlign(CENTER);
     
     if (percentage >= 90) {
-        // 滿分或高分：顯示鼓勵文本，使用鮮豔顏色
-        fill(0, 200, 50); // 綠色 [6]
+        fill(0, 200, 50); 
         text("恭喜！優異成績！", width / 2, height / 2 - 50);
         
-    } else if (percentage > 80) { // 【修改】新增 > 80% 的區間 (觸發煙花)
-        // 特殊高分：顯示慶祝文本
+    } else if (percentage > 80) { 
         fill(255, 215, 0); // 金色
         text("超讚！煙花慶祝中！", width / 2, height / 2 - 50);
         
     } else if (percentage >= 60) {
-        // 中等分數：顯示一般文本，使用黃色 [6]
         fill(255, 181, 35); 
         text("成績良好，請再接再厲。", width / 2, height / 2 - 50);
         
     } else if (percentage > 0) {
-        // 低分：顯示警示文本，使用紅色 [6]
         fill(200, 0, 0); 
         text("需要加強努力！", width / 2, height / 2 - 50);
         
     } else {
-        // 尚未收到分數或分數為 0
+        // 尚未收到分數
         fill(150);
         text(scoreText, width / 2, height / 2);
     }
 
     // 顯示具體分數
-    textSize(50);
-    fill(50);
+    textSize(width / 20);
+    fill(255, 255, 255); // 在黑色背景上，讓分數更明顯
     text(`得分: ${finalScore}/${maxScore}`, width / 2, height / 2 + 50);
     
     
@@ -193,20 +204,18 @@ function draw() {
     // -----------------------------------------------------------------
     
     if (percentage >= 90) {
-        // 畫一個大圓圈代表完美 [7]
-        fill(0, 200, 50, 150); // 帶透明度
+        fill(0, 200, 50, 150); 
         noStroke();
-        circle(width / 2, height / 2 + 150, 150);
+        circle(width / 2, height / 2 + 150, width / 10);
         
     } else if (percentage >= 60) {
-        // 畫一個方形 [4]
         fill(255, 181, 35, 150);
         rectMode(CENTER);
-        rect(width / 2, height / 2 + 150, 150, 150);
+        rect(width / 2, height / 2 + 150, width / 10, width / 10);
     }
     
-    // 如果沒有觸發動畫，停止 draw() 的循環
-    if (!triggerFirework && maxScore > 0) {
+    // 如果沒有觸發動畫，並且已經收到分數，停止 draw() 的循環
+    if (!triggerFirework && maxScore > 0 && finalScore > 0) {
         noLoop();
     }
 }
