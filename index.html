@@ -1,12 +1,19 @@
+
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <title>MyGo!!!!!小問答！</title>
     
+    <!-- 引入 p5.js 函式庫 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.js"></script> 
+
+
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.min.js"></script>
+    <!-- 引入您的分數顯示邏輯 (必須在 p5.js 之後載入) -->
+    <!-- 確保 JS 檔案載入順序正確，以讓變數作用於全域範圍 [4] -->
     <script src="sketch.js"></script>
     
     <style>
@@ -19,46 +26,27 @@
             min-height: 100vh; 
             font-family: Arial, sans-serif;
         }
-        
-        /* 新增：分數顯示的容器，用於設定相對定位 */
-        #scoreDisplayContainer {
+        #h5pContainer {
             margin-top: 20px;
-            /* 讓子元素可以進行絕對定位，實現重疊 */
-            position: relative; 
-            width: 800px; /* 寬度應與 iframe 相同 */
-            height: 600px; /* 高度應與 iframe 相同 */
         }
-
-        /* 確保 iframe 在容器中是正常定位的 */
-        #h5pIframe {
-             /* 為了讓 Canvas 蓋住，可以將 iframe 的 z-index 設定為較低 */
-             z-index: 1; 
-        }
-
-        /* p5.js Canvas 會自動創建在 body 內。我們需要用 CSS 選取它，並將其定位到重疊的位置 */
-        /* p5.js 創建的 Canvas 會在父容器中成為第一個 Canvas 元素 */
-        #scoreDisplayContainer canvas {
-            position: absolute; /* 絕對定位，實現重疊 */
-            top: 0;
-            left: 0;
-            z-index: 10; /* 確保 Canvas 蓋在 iframe 上方 */
-            display: none; /* 預設隱藏 Canvas */
-        }
-        
+        /* p5.js Canvas 會自動創建在 body 內 */
     </style>
 </head>
 <body>
     <h1>Shaun の MyGo!!!!!小問答~</h1>
     
-    <div id="scoreDisplayContainer">
+    <div id="h5pContainer">
+        <!-- 嵌入 H5P 匯出檔案 -->
+        <!-- 將 src 設為 H5P 匯出的 HTML 檔名，例如 h5p_exported.html -->
         <iframe 
             id="h5pIframe" 
-            src="1.html" 
+            src="test1016.html" 
             width="800" 
-            height="600" 
+            height="400" 
             style="border: 2px solid #ccc;">
         </iframe>
-        </div>
+    </div>
     
+    <!-- 分數將顯示在 p5.js 創建的 Canvas 上 -->
 </body>
 </html>
